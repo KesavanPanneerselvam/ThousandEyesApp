@@ -3,6 +3,7 @@ package com.interview.cisco.thousandeyes.di
 import com.interview.cisco.thousandeyes.data.remote.HostRepositoryImpl
 import com.interview.cisco.thousandeyes.data.service.ApiService
 import com.interview.cisco.thousandeyes.domain.repo.HostRepository
+import com.interview.cisco.thousandeyes.pinglib.PingLib
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -13,6 +14,6 @@ import dagger.hilt.android.components.ActivityRetainedComponent
 object RepositoryModule {
     @Provides
     fun provideDataRepository(apiService: ApiService): HostRepository {
-        return HostRepositoryImpl(apiService)
+        return HostRepositoryImpl(apiService, PingLib)
     }
 }

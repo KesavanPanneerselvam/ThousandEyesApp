@@ -17,6 +17,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,13 +43,16 @@ import com.interview.cisco.thousandeyes.utils.getColors
 
 @Composable
 fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
+    LaunchedEffect(Unit) {
+        viewModel.getHostList()
+    }
     BaseScreen(viewModel = viewModel) {
         Column(
             Modifier.fillMaxHeight(),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Column (modifier = Modifier.padding(top = 16.dp, bottom = 16.dp)) {
-                Row (
+            Column(modifier = Modifier.padding(top = 16.dp, bottom = 16.dp)) {
+                Row(
                     modifier = Modifier
                         .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -68,25 +72,26 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
                     .verticalScroll(rememberScrollState())
                     .weight(1f, false)
             ) {
-                when(val result = viewModel.hostItems.collectAsState().value){
+                when (val result = viewModel.hostItems.collectAsState().value) {
                     is UIState.Success -> {
-                        val hostList = if(viewModel.sortByName.value) {
+                        val hostList = if (viewModel.sortByName.value) {
                             result.data.sortedBy { it.name }
-                        }else{
+                        } else {
                             result.data
                         }
                         hostList.forEachIndexed { index, hostItem ->
-                            HostView(hostItem){
+                            HostView(hostItem) {
                                 viewModel.getHostDetails(index, hostList.toMutableList())
                             }
                             ColumnSpaceMedium()
                         }
                     }
+
                     else -> {}
                 }
 
             }
-            Column (modifier = Modifier.padding(top = 16.dp)) {
+            Column(modifier = Modifier.padding(top = 16.dp)) {
                 ButtonNormal("Check All Hosts") {
                     viewModel.getHostList()
                 }
@@ -161,7 +166,7 @@ fun HostView(hostItem: HostItem, onClick: () -> Unit) {
 }
 
 @Composable
-fun InstanceView(title: String, count: String){
+fun InstanceView(title: String, count: String) {
     CardLayout {
         Column(
             modifier = Modifier
@@ -233,6 +238,6 @@ fun HostViewPreview() {
                 icon = "https://pages.ebay.com/favicon.ico",
                 latency = 11
             )
-        ){}
+        ) {}
     }
 }

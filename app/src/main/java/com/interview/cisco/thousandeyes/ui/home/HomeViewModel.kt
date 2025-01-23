@@ -14,7 +14,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val hostUseCase: HostUseCase
-): BaseViewModel(){
+) : BaseViewModel() {
 
     private var _hostItems: MutableStateFlow<UIState<List<HostItem>>> =
         MutableStateFlow(UIState.Init)
@@ -23,23 +23,21 @@ class HomeViewModel @Inject constructor(
 
     var sortByName = mutableStateOf(false)
 
-    init {
-        getHostList()
-    }
-
-    fun getHostList(){
+    fun getHostList() {
         _hostItems.value = UIState.Init
         backgroundScope {
             hostUseCase.getHostItems().collect { response ->
                 uiScope {
-                    when(response) {
+                    when (response) {
                         is ResponseState.Loading -> showProgressBar(response.isLoading)
                         is ResponseState.Success -> {
                             _hostItems.value = UIState.Success(response.data)
                         }
+
                         is ResponseState.Error -> {
                             showProgressBar(false)
                             processError(response.e)
+                            _hostItems.value = UIState.Error(response.e?.message ?: "")
                         }
                     }
                 }
@@ -47,10 +45,10 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun getHostDetails(index: Int,hostList: MutableList<HostItem>){
+    fun getHostDetails(index: Int, hostList: MutableList<HostItem>) {
         _hostItems.value = UIState.Init
         backgroundScope {
-            hostUseCase.getHostPingResult(hostList[index]).collect{response ->
+            hostUseCase.getHostPingResult(hostList[index]).collect { response ->
                 uiScope {
                     when (response) {
                         is ResponseState.Loading -> showProgressBar(response.isLoading)
@@ -72,6 +70,7 @@ class HomeViewModel @Inject constructor(
                         is ResponseState.Error -> {
                             showProgressBar(false)
                             processError(response.e)
+                            _hostItems.value = UIState.Error(response.e?.message ?: "")
                         }
                     }
                 }

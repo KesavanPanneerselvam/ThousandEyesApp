@@ -12,13 +12,14 @@ import kotlinx.coroutines.flow.callbackFlow
 import javax.inject.Inject
 
 class HostRepositoryImpl @Inject constructor(
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    private val pingLib: PingLib
 ): HostRepository {
     override fun getHostItems(): Flow<ResponseState<List<HostItem>>> = callbackFlow {
         trySend(ResponseState.Loading(true))
         try {
             val response = apiService.getHostItems().toMutableList()
-            PingLib.pingHostsConcurrently(response.map { it.url }).forEach { pingResult ->
+            pingLib.pingHostsConcurrently(response.map { it.url }).forEach { pingResult ->
                 response.forEachIndexed { index, hostItem ->
                     if(hostItem.url == pingResult.url){
                         response[index].apply {
@@ -43,16 +44,21 @@ class HostRepositoryImpl @Inject constructor(
 
     override fun getHostPingResult(hostItem: HostItem): Flow<ResponseState<HostItem>> = callbackFlow {
         trySend(ResponseState.Loading(true))
-        PingLib.pingHost(hostItem.url).let { ping ->
-            hostItem.apply {
-                total = ping.total
-                success = ping.success
-                failure = ping.failure
-                latency = ping.averageLatency
+        try {
+            pingLib.pingHost(hostItem.url).let { ping ->
+                hostItem.apply {
+                    total = ping.total
+                    success = ping.success
+                    failure = ping.failure
+                    latency = ping.averageLatency
+                }
             }
+            trySend(ResponseState.Loading())
+            trySend(ResponseState.Success(hostItem))
+        }catch (e: Exception){
+            trySend(ResponseState.Loading())
+            trySend(ResponseState.Error(AppError.GeneralError))
         }
-        trySend(ResponseState.Loading())
-        trySend(ResponseState.Success(hostItem))
         awaitClose {
             channel.close()
         }

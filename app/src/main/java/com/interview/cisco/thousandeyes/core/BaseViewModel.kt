@@ -4,11 +4,8 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.interview.cisco.thousandeyes.utils.ResponseState
-import com.interview.cisco.thousandeyes.utils.UIState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -18,21 +15,8 @@ open class BaseViewModel: ViewModel() {
     val showErrorMessage = mutableStateOf(DisplayMessage())
 
     fun backgroundScope(block:suspend ()->Unit){
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             block.invoke()
-        }
-    }
-
-    suspend fun <T> uiScope(response: ResponseState<T>, mutableState: MutableStateFlow<UIState<T>>){
-        withContext(Dispatchers.Main){
-            when(response) {
-                is ResponseState.Loading -> showProgressBar(response.isLoading)
-                is ResponseState.Success -> mutableState.value = UIState.Success(response.data)
-                is ResponseState.Error -> {
-                    showProgressBar(false)
-                    processError(response.e)
-                }
-            }
         }
     }
 
